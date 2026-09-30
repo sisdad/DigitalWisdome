@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -7,12 +8,14 @@ import {
   SERVER_BASE_URL,
 } from "../config/api";
 
+import fallbackLogoAsset from "../assets/digital-wisdom-logo.png";
+
 // ============================================================
 // FALLBACK DATA
 // ============================================================
 
 const FALLBACK_LOGO = {
-  image_url: "/src/assets/digital-wisdom-logo.png",
+  image_url: fallbackLogoAsset,
   alt: "Digital Wisdom Advertising & Promotion",
   home_url: "/",
 };
@@ -48,6 +51,10 @@ function parseJsonContent(value, fallback = {}) {
   }
 }
 
+// ------------------------------------------------------------
+// Convert CMS image URL into a browser-accessible URL
+// ------------------------------------------------------------
+
 function getImageUrl(imageUrl) {
   if (!imageUrl || typeof imageUrl !== "string") {
     return "";
@@ -55,8 +62,11 @@ function getImageUrl(imageUrl) {
 
   const value = imageUrl.trim();
 
-  if (!value) return "";
+  if (!value) {
+    return "";
+  }
 
+  // Full external URL
   if (
     value.startsWith("http://") ||
     value.startsWith("https://")
@@ -64,24 +74,40 @@ function getImageUrl(imageUrl) {
     return value;
   }
 
+  // Vite public assets / local assets
   if (
-    value.startsWith("/src/") ||
-    value.startsWith("/assets/")
+    value.startsWith("/assets/") ||
+    value.startsWith("/src/")
   ) {
     return value;
   }
 
-  if (value.startsWith("/")) {
-    return `${SERVER_BASE_URL}${value}`;
+  // Make sure SERVER_BASE_URL does not create //
+  const serverBase = String(SERVER_BASE_URL || "").replace(
+    /\/+$/,
+    ""
+  );
+
+  // Uploaded files returned by backend, e.g.
+  // /uploads/navbar/logo.png
+  // /uploads/logo.png
+  if (value.startsWith("/uploads/")) {
+    return `${serverBase}${value}`;
   }
 
-  return `${SERVER_BASE_URL}/${value}`;
+  // Any other absolute backend path
+  if (value.startsWith("/")) {
+    return `${serverBase}${value}`;
+  }
+
+  // Relative backend path
+  return `${serverBase}/${value.replace(/^\/+/, "")}`;
 }
 
 function normalizePath(path) {
   if (!path) return "/";
 
-  const cleanPath = path
+  const cleanPath = String(path)
     .split("?")[0]
     .split("#")[0]
     .replace(/\/+$/, "");
@@ -95,7 +121,10 @@ function removeContactLink(links) {
   }
 
   return links.filter((link) => {
-    const name = String(link?.name || "").trim().toLowerCase();
+    const name = String(link?.name || "")
+      .trim()
+      .toLowerCase();
+
     const path = normalizePath(link?.path || "");
 
     return name !== "contact" && path !== "/contact";
@@ -128,19 +157,30 @@ export default function Navbar() {
 
     async function loadNavbar() {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/public-cms/pages/navbar`,
-          {
-            cache: "no-store",
-          }
+        const navbarUrl = `${API_BASE_URL}/public-cms/pages/navbar`;
+
+        console.log(
+          "NAVBAR CMS REQUEST:",
+          navbarUrl
         );
+
+        const response = await fetch(navbarUrl, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
+        });
 
         let result = null;
 
         try {
           result = await response.json();
-        } catch {
-          result = null;
+        } catch (error) {
+          console.error(
+            "NAVBAR RESPONSE JSON ERROR:",
+            error
+          );
         }
 
         if (!response.ok) {
@@ -151,38 +191,94 @@ export default function Navbar() {
         }
 
         if (!result?.success || !result?.data) {
-          throw new Error("Invalid navbar CMS response.");
+          throw new Error(
+            "Invalid navbar CMS response."
+          );
         }
 
-        const sections = Array.isArray(result.data.sections)
+        const sections = Array.isArray(
+          result.data.sections
+        )
           ? result.data.sections
           : [];
 
-        const sectionMap = sections.reduce((acc, section) => {
-          if (section?.section_key) {
-            acc[section.section_key] = section;
-          }
+        console.log(
+          "NAVBAR CMS SECTIONS:",
+          sections
+        );
 
-          return acc;
-        }, {});
+        const sectionMap = sections.reduce(
+          (acc, section) => {
+            if (section?.section_key) {
+              acc[section.section_key] = section;
+            }
+
+            return acc;
+          },
+          {}
+        );
 
         // ======================================================
         // LOGO
         // ======================================================
 
-        const logoSection = sectionMap.logo || {};
+        const logoSection =
+          sectionMap.logo || {};
 
         const logoContent = parseJsonContent(
           logoSection.content,
           {}
         );
 
+        /*
+         * The admin CMS can store the image URL in either:
+         *
+         * 1. section.image_url
+         *
+         * OR
+         *
+         * 2. section.content.image_url
+         */
+
         const cmsLogo =
           logoSection.image_url ||
           logoContent?.image_url ||
+          logoContent?.image ||
           "";
 
-        const finalLogoUrl = getImageUrl(cmsLogo);
+        console.log(
+          "NAVBAR CMS LOGO RAW:",
+          cmsLogo
+        );
+
+        const resolvedCmsLogo =
+          getImageUrl(cmsLogo);
+
+        console.log(
+          "NAVBAR CMS LOGO RESOLVED:",
+          resolvedCmsLogo
+        );
+
+        /*
+         * Add a cache-busting query only to uploaded
+         * CMS logos. This prevents the browser from
+         * continuing to display an old uploaded logo.
+         */
+
+        let finalLogoUrl = resolvedCmsLogo;
+
+        if (
+          finalLogoUrl &&
+          !finalLogoUrl.startsWith("data:")
+        ) {
+          const separator =
+            finalLogoUrl.includes("?")
+              ? "&"
+              : "?";
+
+          finalLogoUrl =
+            `${finalLogoUrl}${separator}v=${Date.now()}`;
+        }
 
         const logo = {
           image_url:
@@ -208,29 +304,35 @@ export default function Navbar() {
         const navigationSection =
           sectionMap.navigation || {};
 
-        const navigationContent = parseJsonContent(
-          navigationSection.content,
-          {}
-        );
+        const navigationContent =
+          parseJsonContent(
+            navigationSection.content,
+            {}
+          );
 
         const cmsLinks =
-          Array.isArray(navigationContent?.links) &&
+          Array.isArray(
+            navigationContent?.links
+          ) &&
           navigationContent.links.length > 0
             ? navigationContent.links
             : FALLBACK_LINKS;
 
-        const links = removeContactLink(cmsLinks);
+        const links =
+          removeContactLink(cmsLinks);
 
         // ======================================================
         // CTA
         // ======================================================
 
-        const ctaSection = sectionMap.cta || {};
+        const ctaSection =
+          sectionMap.cta || {};
 
-        const ctaContent = parseJsonContent(
-          ctaSection.content,
-          {}
-        );
+        const ctaContent =
+          parseJsonContent(
+            ctaSection.content,
+            {}
+          );
 
         const cta = {
           text:
@@ -244,6 +346,10 @@ export default function Navbar() {
             FALLBACK_CTA.url,
         };
 
+        // ======================================================
+        // UPDATE NAVBAR
+        // ======================================================
+
         if (mounted) {
           setLogoFailed(false);
 
@@ -254,9 +360,14 @@ export default function Navbar() {
           });
         }
       } catch (error) {
-        console.error("NAVBAR CMS LOAD ERROR:", error);
+        console.error(
+          "NAVBAR CMS LOAD ERROR:",
+          error
+        );
 
         if (mounted) {
+          setLogoFailed(false);
+
           setNavbar({
             logo: FALLBACK_LOGO,
             links: FALLBACK_LINKS,
@@ -286,14 +397,17 @@ export default function Navbar() {
   // ==========================================================
 
   function isActive(path) {
-    const currentPath = normalizePath(location.pathname);
+    const currentPath = normalizePath(
+      location.pathname
+    );
+
     const linkPath = normalizePath(path);
 
     return currentPath === linkPath;
   }
 
   // ==========================================================
-  // LOGO
+  // LOGO SOURCE
   // ==========================================================
 
   const logoSource = logoFailed
@@ -388,6 +502,12 @@ export default function Navbar() {
 
                 setLogoFailed(true);
               }}
+              onLoad={(event) => {
+                console.log(
+                  "NAVBAR LOGO LOADED:",
+                  event.currentTarget.src
+                );
+              }}
             />
           </Link>
 
@@ -409,7 +529,9 @@ export default function Navbar() {
               "
             >
               {navbar.links.map((link, index) => {
-                const active = isActive(link.path);
+                const active = isActive(
+                  link.path
+                );
 
                 return (
                   <Link
@@ -450,7 +572,10 @@ export default function Navbar() {
           ================================================== */}
 
           <Link
-            to={navbar.cta.url || "/contact"}
+            to={
+              navbar.cta.url ||
+              "/contact"
+            }
             className="
               group
               relative
@@ -478,7 +603,8 @@ export default function Navbar() {
             <span className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/20 transition-all duration-700 group-hover:left-[120%]" />
 
             <span className="relative">
-              {navbar.cta.text || "Advertise With Us"}
+              {navbar.cta.text ||
+                "Advertise With Us"}
             </span>
 
             <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
@@ -495,7 +621,11 @@ export default function Navbar() {
 
           <button
             type="button"
-            onClick={() => setOpen((previous) => !previous)}
+            onClick={() =>
+              setOpen(
+                (previous) => !previous
+              )
+            }
             className="
               relative
               z-10
@@ -518,7 +648,11 @@ export default function Navbar() {
             }
             aria-expanded={open}
           >
-            {open ? <X size={22} /> : <Menu size={22} />}
+            {open ? (
+              <X size={22} />
+            ) : (
+              <Menu size={22} />
+            )}
           </button>
         </nav>
 
@@ -546,45 +680,53 @@ export default function Navbar() {
             <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#1479e8]/10 blur-3xl" />
 
             <div className="relative space-y-1">
-              {navbar.links.map((link, index) => {
-                const active = isActive(link.path);
+              {navbar.links.map(
+                (link, index) => {
+                  const active =
+                    isActive(link.path);
 
-                return (
-                  <Link
-                    key={`${link.name}-${link.path}-${index}`}
-                    to={link.path || "/"}
-                    onClick={closeMenu}
-                    className={`
-                      flex
-                      items-center
-                      justify-between
-                      rounded-xl
-                      px-4
-                      py-3.5
-                      text-sm
-                      font-bold
-                      transition-all
-                      duration-300
-                      ${
-                        active
-                          ? "bg-white text-black"
-                          : "text-white/65 hover:bg-white/[0.07] hover:text-white"
-                      }
-                    `}
-                  >
-                    <span>{link.name}</span>
+                  return (
+                    <Link
+                      key={`${link.name}-${link.path}-${index}`}
+                      to={link.path || "/"}
+                      onClick={closeMenu}
+                      className={`
+                        flex
+                        items-center
+                        justify-between
+                        rounded-xl
+                        px-4
+                        py-3.5
+                        text-sm
+                        font-bold
+                        transition-all
+                        duration-300
+                        ${
+                          active
+                            ? "bg-white text-black"
+                            : "text-white/65 hover:bg-white/[0.07] hover:text-white"
+                        }
+                      `}
+                    >
+                      <span>
+                        {link.name}
+                      </span>
 
-                    {active && (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1479e8]" />
-                    )}
-                  </Link>
-                );
-              })}
+                      {active && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#1479e8]" />
+                      )}
+                    </Link>
+                  );
+                }
+              )}
             </div>
 
-            {/* Mobile CTA only */}
+            {/* Mobile CTA */}
             <Link
-              to={navbar.cta.url || "/contact"}
+              to={
+                navbar.cta.url ||
+                "/contact"
+              }
               onClick={closeMenu}
               className="
                 group
@@ -611,7 +753,8 @@ export default function Navbar() {
               "
             >
               <span className="relative">
-                {navbar.cta.text || "Advertise With Us"}
+                {navbar.cta.text ||
+                  "Advertise With Us"}
               </span>
 
               <ArrowRight
@@ -625,3 +768,4 @@ export default function Navbar() {
     </header>
   );
 }
+
