@@ -1,22 +1,14 @@
-
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
-
-// ============================================================
-// API CONFIGURATION
-// ============================================================
-
 
 import {
   API_BASE_URL,
   SERVER_BASE_URL,
 } from "../config/api";
 
-
 // ============================================================
 // FALLBACK DATA
-// Used when CMS/server is unavailable.
 // ============================================================
 
 const FALLBACK_LOGO = {
@@ -30,7 +22,6 @@ const FALLBACK_LINKS = [
   { name: "About", path: "/about" },
   { name: "Our Network", path: "/network" },
   { name: "Solutions", path: "/solutions" },
-  { name: "Contact", path: "/contact" },
 ];
 
 const FALLBACK_CTA = {
@@ -39,13 +30,11 @@ const FALLBACK_CTA = {
 };
 
 // ============================================================
-// SAFE JSON PARSER
+// HELPERS
 // ============================================================
 
 function parseJsonContent(value, fallback = {}) {
-  if (!value) {
-    return fallback;
-  }
+  if (!value) return fallback;
 
   if (typeof value !== "string") {
     return value;
@@ -54,34 +43,20 @@ function parseJsonContent(value, fallback = {}) {
   try {
     return JSON.parse(value);
   } catch (error) {
-    console.error(
-      "NAVBAR JSON PARSE ERROR:",
-      error
-    );
-
+    console.error("NAVBAR JSON PARSE ERROR:", error);
     return fallback;
   }
 }
 
-// ============================================================
-// IMAGE URL HANDLER
-// ============================================================
-
 function getImageUrl(imageUrl) {
-  if (
-    !imageUrl ||
-    typeof imageUrl !== "string"
-  ) {
+  if (!imageUrl || typeof imageUrl !== "string") {
     return "";
   }
 
   const value = imageUrl.trim();
 
-  if (!value) {
-    return "";
-  }
+  if (!value) return "";
 
-  // Absolute URL
   if (
     value.startsWith("http://") ||
     value.startsWith("https://")
@@ -89,7 +64,6 @@ function getImageUrl(imageUrl) {
     return value;
   }
 
-  // Vite source/public image
   if (
     value.startsWith("/src/") ||
     value.startsWith("/assets/")
@@ -97,23 +71,15 @@ function getImageUrl(imageUrl) {
     return value;
   }
 
-  // Server uploaded image
   if (value.startsWith("/")) {
     return `${SERVER_BASE_URL}${value}`;
   }
 
-  // Relative image
   return `${SERVER_BASE_URL}/${value}`;
 }
 
-// ============================================================
-// NORMALIZE PATH
-// ============================================================
-
 function normalizePath(path) {
-  if (!path) {
-    return "/";
-  }
+  if (!path) return "/";
 
   const cleanPath = path
     .split("?")[0]
@@ -121,6 +87,19 @@ function normalizePath(path) {
     .replace(/\/+$/, "");
 
   return cleanPath || "/";
+}
+
+function removeContactLink(links) {
+  if (!Array.isArray(links)) {
+    return FALLBACK_LINKS;
+  }
+
+  return links.filter((link) => {
+    const name = String(link?.name || "").trim().toLowerCase();
+    const path = normalizePath(link?.path || "");
+
+    return name !== "contact" && path !== "/contact";
+  });
 }
 
 // ============================================================
@@ -171,69 +150,39 @@ export default function Navbar() {
           );
         }
 
-        if (
-          !result?.success ||
-          !result?.data
-        ) {
-          throw new Error(
-            "Invalid navbar CMS response."
-          );
+        if (!result?.success || !result?.data) {
+          throw new Error("Invalid navbar CMS response.");
         }
 
-        const sections =
-          Array.isArray(
-            result.data.sections
-          )
-            ? result.data.sections
-            : [];
+        const sections = Array.isArray(result.data.sections)
+          ? result.data.sections
+          : [];
 
-        // ======================================================
-        // SECTION MAP
-        // ======================================================
+        const sectionMap = sections.reduce((acc, section) => {
+          if (section?.section_key) {
+            acc[section.section_key] = section;
+          }
 
-        const sectionMap =
-          sections.reduce(
-            (acc, section) => {
-              if (
-                section?.section_key
-              ) {
-                acc[
-                  section.section_key
-                ] = section;
-              }
-
-              return acc;
-            },
-            {}
-          );
+          return acc;
+        }, {});
 
         // ======================================================
         // LOGO
         // ======================================================
 
-        const logoSection =
-          sectionMap.logo || {};
+        const logoSection = sectionMap.logo || {};
 
-        const logoContent =
-          parseJsonContent(
-            logoSection.content,
-            {}
-          );
-
-        /*
-          IMPORTANT:
-          image_url from the CMS database takes priority.
-          This allows the Admin CMS uploaded logo to appear
-          on the public website.
-        */
+        const logoContent = parseJsonContent(
+          logoSection.content,
+          {}
+        );
 
         const cmsLogo =
           logoSection.image_url ||
           logoContent?.image_url ||
           "";
 
-        const finalLogoUrl =
-          getImageUrl(cmsLogo);
+        const finalLogoUrl = getImageUrl(cmsLogo);
 
         const logo = {
           image_url:
@@ -252,38 +201,36 @@ export default function Navbar() {
         };
 
         // ======================================================
-        // NAVIGATION LINKS
+        // NAVIGATION
+        // Contact is deliberately removed.
         // ======================================================
 
         const navigationSection =
           sectionMap.navigation || {};
 
-        const navigationContent =
-          parseJsonContent(
-            navigationSection.content,
-            {}
-          );
+        const navigationContent = parseJsonContent(
+          navigationSection.content,
+          {}
+        );
 
-        const links =
-          Array.isArray(
-            navigationContent?.links
-          ) &&
+        const cmsLinks =
+          Array.isArray(navigationContent?.links) &&
           navigationContent.links.length > 0
             ? navigationContent.links
             : FALLBACK_LINKS;
+
+        const links = removeContactLink(cmsLinks);
 
         // ======================================================
         // CTA
         // ======================================================
 
-        const ctaSection =
-          sectionMap.cta || {};
+        const ctaSection = sectionMap.cta || {};
 
-        const ctaContent =
-          parseJsonContent(
-            ctaSection.content,
-            {}
-          );
+        const ctaContent = parseJsonContent(
+          ctaSection.content,
+          {}
+        );
 
         const cta = {
           text:
@@ -297,10 +244,6 @@ export default function Navbar() {
             FALLBACK_CTA.url,
         };
 
-        // ======================================================
-        // UPDATE NAVBAR
-        // ======================================================
-
         if (mounted) {
           setLogoFailed(false);
 
@@ -311,14 +254,7 @@ export default function Navbar() {
           });
         }
       } catch (error) {
-        console.error(
-          "NAVBAR CMS LOAD ERROR:",
-          error
-        );
-
-        // ======================================================
-        // FALLBACK
-        // ======================================================
+        console.error("NAVBAR CMS LOAD ERROR:", error);
 
         if (mounted) {
           setNavbar({
@@ -350,19 +286,14 @@ export default function Navbar() {
   // ==========================================================
 
   function isActive(path) {
-    const currentPath = normalizePath(
-      location.pathname
-    );
-
-    const linkPath = normalizePath(
-      path
-    );
+    const currentPath = normalizePath(location.pathname);
+    const linkPath = normalizePath(path);
 
     return currentPath === linkPath;
   }
 
   // ==========================================================
-  // LOGO SOURCE
+  // LOGO
   // ==========================================================
 
   const logoSource = logoFailed
@@ -374,47 +305,60 @@ export default function Navbar() {
   // ==========================================================
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50">
+    <header className="fixed inset-x-0 top-0 z-50">
+      {/* Very subtle premium glow */}
+      <div className="pointer-events-none absolute left-1/2 top-0 h-40 w-[60%] -translate-x-1/2 rounded-full bg-[#1479e8]/10 blur-[100px]" />
 
-      {/* ======================================================
-          NAVBAR CONTAINER
-      ====================================================== */}
+      <div className="relative mx-auto max-w-[1500px] px-4 pt-4 sm:px-6 lg:px-8 lg:pt-5">
 
-      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-5">
-
+        {/* Main navigation */}
         <nav
           className="
-            flex items-center justify-between
-            rounded-2xl
-            border border-white/10
-            bg-[#070a0f]/90
-            px-4 py-2.5
-            shadow-2xl shadow-black/20
-            backdrop-blur-xl
+            relative
+            flex
+            min-h-[76px]
+            items-center
+            justify-between
+            rounded-[22px]
+            border
+            border-white/[0.12]
+            bg-black/80
+            px-4
+            py-2
+            shadow-2xl
+            shadow-black/40
+            backdrop-blur-2xl
             sm:px-5
+            lg:min-h-[82px]
+            lg:px-7
           "
         >
+          {/* Soft inner highlight */}
+          <div className="pointer-events-none absolute inset-0 rounded-[22px] bg-gradient-to-b from-white/[0.045] to-transparent" />
 
           {/* ==================================================
               LOGO
           ================================================== */}
 
           <Link
-            to={
-              navbar.logo.home_url || "/"
-            }
+            to={navbar.logo.home_url || "/"}
             onClick={closeMenu}
             className="
+              group
+              relative
+              z-10
               flex
               shrink-0
               items-center
-              rounded-xl
               outline-none
-              transition
+              transition-transform
+              duration-300
               focus-visible:ring-2
-              focus-visible:ring-[#1479e8]
+              focus-visible:ring-[#63b1ff]
             "
           >
+            <div className="pointer-events-none absolute -inset-5 rounded-3xl bg-[#1479e8]/10 opacity-0 blur-2xl transition duration-500 group-hover:opacity-100" />
+
             <img
               key={logoSource}
               src={logoSource}
@@ -423,12 +367,18 @@ export default function Navbar() {
                 FALLBACK_LOGO.alt
               }
               className="
-                h-11
+                relative
+                h-[58px]
                 w-auto
-                max-w-[190px]
+                max-w-[230px]
                 object-contain
-                sm:h-12
-                sm:max-w-[220px]
+                transition-transform
+                duration-300
+                group-hover:scale-[1.025]
+                sm:h-[64px]
+                sm:max-w-[260px]
+                lg:h-[72px]
+                lg:max-w-[300px]
               "
               onError={(event) => {
                 console.error(
@@ -445,73 +395,98 @@ export default function Navbar() {
               DESKTOP NAVIGATION
           ================================================== */}
 
-          <div className="hidden items-center lg:flex">
+          <div className="hidden lg:flex lg:items-center">
+            <div
+              className="
+                flex
+                items-center
+                gap-1
+                rounded-full
+                border
+                border-white/[0.09]
+                bg-white/[0.035]
+                p-1
+              "
+            >
+              {navbar.links.map((link, index) => {
+                const active = isActive(link.path);
 
-            <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1">
+                return (
+                  <Link
+                    key={`${link.name}-${link.path}-${index}`}
+                    to={link.path || "/"}
+                    className={`
+                      relative
+                      rounded-full
+                      px-5
+                      py-3
+                      text-[13px]
+                      font-bold
+                      tracking-[0.01em]
+                      transition-all
+                      duration-300
+                      ${
+                        active
+                          ? "bg-white text-black shadow-lg shadow-black/20"
+                          : "text-white/55 hover:bg-white/[0.08] hover:text-white"
+                      }
+                    `}
+                  >
+                    {active && (
+                      <span className="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-[#1479e8]" />
+                    )}
 
-              {navbar.links.map(
-                (link, index) => {
-                  const active =
-                    isActive(link.path);
-
-                  return (
-                    <Link
-                      key={`${link.name}-${link.path}-${index}`}
-                      to={link.path || "/"}
-                      className={`
-                        relative
-                        rounded-full
-                        px-4
-                        py-2.5
-                        text-sm
-                        font-medium
-                        transition-all
-                        duration-200
-                        ${
-                          active
-                            ? "bg-white text-slate-950 shadow-lg shadow-black/20"
-                            : "text-white/65 hover:bg-white/10 hover:text-white"
-                        }
-                      `}
-                    >
+                    <span className="relative">
                       {link.name}
-                    </Link>
-                  );
-                }
-              )}
-
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
-
           </div>
 
           {/* ==================================================
-              DESKTOP CTA
+              ADVERTISE WITH US
           ================================================== */}
 
           <Link
-            to={
-              navbar.cta.url ||
-              "/contact"
-            }
+            to={navbar.cta.url || "/contact"}
             className="
+              group
+              relative
               hidden
+              items-center
+              gap-3
+              overflow-hidden
               rounded-full
               bg-[#1479e8]
               px-5
-              py-2.5
+              py-3.5
               text-sm
-              font-semibold
+              font-black
               text-white
-              shadow-lg
-              shadow-blue-500/20
+              shadow-xl
+              shadow-[#1479e8]/20
               transition-all
-              duration-200
-              hover:bg-[#0f6ed5]
-              hover:shadow-blue-500/30
-              lg:block
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-[#2184ee]
+              hover:shadow-[#1479e8]/35
+              lg:flex
             "
           >
-            {navbar.cta.text}
+            <span className="absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/20 transition-all duration-700 group-hover:left-[120%]" />
+
+            <span className="relative">
+              {navbar.cta.text || "Advertise With Us"}
+            </span>
+
+            <span className="relative flex h-7 w-7 items-center justify-center rounded-full bg-white/15">
+              <ArrowRight
+                size={15}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </span>
           </Link>
 
           {/* ==================================================
@@ -520,21 +495,20 @@ export default function Navbar() {
 
           <button
             type="button"
-            onClick={() =>
-              setOpen(
-                (previous) =>
-                  !previous
-              )
-            }
+            onClick={() => setOpen((previous) => !previous)}
             className="
+              relative
+              z-10
               rounded-xl
               border
               border-white/10
-              bg-white/[0.03]
-              p-2.5
+              bg-white/[0.05]
+              p-3
               text-white
-              transition
-              hover:bg-white/10
+              transition-all
+              duration-300
+              hover:border-[#1479e8]/40
+              hover:bg-[#1479e8]/10
               lg:hidden
             "
             aria-label={
@@ -544,13 +518,8 @@ export default function Navbar() {
             }
             aria-expanded={open}
           >
-            {open ? (
-              <X size={21} />
-            ) : (
-              <Menu size={21} />
-            )}
+            {open ? <X size={22} /> : <Menu size={22} />}
           </button>
-
         </nav>
 
         {/* ====================================================
@@ -560,23 +529,25 @@ export default function Navbar() {
         {open && (
           <div
             className="
-              mt-2
+              relative
+              mt-3
               overflow-hidden
-              rounded-2xl
+              rounded-[22px]
               border
               border-white/10
-              bg-[#080b10]/98
+              bg-black/95
               p-3
               shadow-2xl
-              backdrop-blur-xl
+              shadow-black/50
+              backdrop-blur-2xl
               lg:hidden
             "
           >
+            <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#1479e8]/10 blur-3xl" />
 
-            {navbar.links.map(
-              (link, index) => {
-                const active =
-                  isActive(link.path);
+            <div className="relative space-y-1">
+              {navbar.links.map((link, index) => {
+                const active = isActive(link.path);
 
                 return (
                   <Link
@@ -584,63 +555,73 @@ export default function Navbar() {
                     to={link.path || "/"}
                     onClick={closeMenu}
                     className={`
-                      mb-1
                       flex
                       items-center
+                      justify-between
                       rounded-xl
                       px-4
                       py-3.5
                       text-sm
-                      font-medium
-                      transition
+                      font-bold
+                      transition-all
+                      duration-300
                       ${
                         active
-                          ? "bg-white text-slate-950"
-                          : "text-white/75 hover:bg-white/10 hover:text-white"
+                          ? "bg-white text-black"
+                          : "text-white/65 hover:bg-white/[0.07] hover:text-white"
                       }
                     `}
                   >
-                    {link.name}
+                    <span>{link.name}</span>
+
+                    {active && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#1479e8]" />
+                    )}
                   </Link>
                 );
-              }
-            )}
+              })}
+            </div>
 
-            {/* ==================================================
-                MOBILE CTA
-            ================================================== */}
-
+            {/* Mobile CTA only */}
             <Link
-              to={
-                navbar.cta.url ||
-                "/contact"
-              }
+              to={navbar.cta.url || "/contact"}
               onClick={closeMenu}
               className="
-                mt-2
-                block
+                group
+                relative
+                mt-3
+                flex
+                items-center
+                justify-center
+                gap-3
+                overflow-hidden
                 rounded-full
                 bg-[#1479e8]
                 px-5
                 py-3.5
                 text-center
                 text-sm
-                font-semibold
+                font-black
                 text-white
-                shadow-lg
-                shadow-blue-500/20
-                transition
-                hover:bg-[#0f6ed5]
+                shadow-xl
+                shadow-[#1479e8]/20
+                transition-all
+                duration-300
+                hover:bg-[#2184ee]
               "
             >
-              {navbar.cta.text}
-            </Link>
+              <span className="relative">
+                {navbar.cta.text || "Advertise With Us"}
+              </span>
 
+              <ArrowRight
+                size={17}
+                className="relative transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
           </div>
         )}
-
       </div>
     </header>
   );
 }
-

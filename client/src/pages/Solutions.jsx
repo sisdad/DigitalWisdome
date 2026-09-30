@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -26,18 +25,15 @@ import {
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import SectionTitle from "../components/SectionTitle";
 
 // ============================================================
 // API
 // ============================================================
 
-
 import {
   API_BASE_URL,
   SERVER_BASE_URL,
 } from "../config/api";
-
 
 // ============================================================
 // DEFAULT / FALLBACK IMAGES
@@ -82,12 +78,6 @@ const solutionImages = {
 
 // ============================================================
 // IMAGE URL HELPER
-//
-// CMS stores paths such as:
-// /uploads/cms/example.jpg
-//
-// This converts them into:
-// http://localhost:5000/uploads/cms/example.jpg
 // ============================================================
 
 function getImageUrl(imageUrl, fallback = fallbackImage) {
@@ -365,6 +355,25 @@ const defaultSections = {
 };
 
 // ============================================================
+// ANIMATION VARIANTS
+// ============================================================
+
+const fadeUp = {
+  hidden: {
+    opacity: 0,
+    y: 35,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+// ============================================================
 // SOLUTIONS PAGE
 // ============================================================
 
@@ -413,17 +422,9 @@ export default function Solutions() {
           return;
         }
 
-        // --------------------------------------------------------
-        // PAGE
-        // --------------------------------------------------------
-
         if (pageResult?.success && pageResult?.data) {
           setCmsPage(pageResult.data);
         }
-
-        // --------------------------------------------------------
-        // SOLUTIONS
-        // --------------------------------------------------------
 
         if (
           solutionsResult?.success &&
@@ -432,20 +433,12 @@ export default function Solutions() {
           setSolutions(solutionsResult.data);
         }
 
-        // --------------------------------------------------------
-        // BENEFITS
-        // --------------------------------------------------------
-
         if (
           benefitsResult?.success &&
           Array.isArray(benefitsResult?.data)
         ) {
           setBenefits(benefitsResult.data);
         }
-
-        // --------------------------------------------------------
-        // CAMPAIGN PROCESS
-        // --------------------------------------------------------
 
         if (
           processResult?.success &&
@@ -495,13 +488,16 @@ export default function Solutions() {
   // HERO
   // ============================================================
 
-  const hero = sections.hero || defaultSections.hero;
+  const hero =
+    sections.hero || defaultSections.hero;
 
   const heroEyebrow =
-    hero.eyebrow || defaultSections.hero.eyebrow;
+    hero.eyebrow ||
+    defaultSections.hero.eyebrow;
 
   const heroTitle =
-    hero.title || defaultSections.hero.title;
+    hero.title ||
+    defaultSections.hero.title;
 
   const heroDescription =
     hero.description ||
@@ -663,16 +659,23 @@ export default function Solutions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#05070a] text-white">
+      <div className="min-h-screen bg-[#061a3a] text-white">
         <Navbar />
 
-        <main className="flex min-h-[70vh] items-center justify-center px-5 pt-32">
-          <div className="text-center">
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-[#1479e8]" />
+        <main className="relative flex min-h-[75vh] items-center justify-center overflow-hidden px-5 pt-28">
 
-            <p className="mt-5 text-sm text-white/40">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/2 top-1/2 h-[450px] w-[450px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1479e8]/15 blur-[120px]" />
+          </div>
+
+          <div className="relative text-center">
+
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-[#63b1ff]" />
+
+            <p className="mt-6 text-base font-bold text-white/70">
               Loading Solutions...
             </p>
+
           </div>
         </main>
 
@@ -686,72 +689,80 @@ export default function Solutions() {
   // ============================================================
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[#05070a] text-white">
+    <div className="min-h-screen overflow-hidden bg-[#061a3a] text-white">
+
       <Navbar />
 
-      <main className="pt-32">
+      <main>
 
         {/* =====================================================
             HERO
         ===================================================== */}
 
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden bg-[#061a3a] pt-28 sm:pt-32 lg:pt-36">
 
           <div className="pointer-events-none absolute inset-0">
 
-            <div className="absolute left-[5%] top-[10%] h-[450px] w-[450px] rounded-full bg-[#1479e8]/10 blur-3xl" />
+            <div className="absolute -left-40 top-10 h-[500px] w-[500px] rounded-full bg-[#1479e8]/20 blur-[120px]" />
 
-            <div className="absolute right-[-5%] top-[15%] h-[500px] w-[500px] rounded-full bg-[#1479e8]/[0.07] blur-3xl" />
+            <div className="absolute right-[-150px] top-20 h-[600px] w-[600px] rounded-full bg-[#1479e8]/15 blur-[130px]" />
+
+            <div className="absolute bottom-0 left-1/2 h-[350px] w-[700px] -translate-x-1/2 rounded-full bg-[#1479e8]/10 blur-[120px]" />
 
             <div
-              className="absolute inset-0 opacity-[0.025]"
+              className="absolute inset-0 opacity-[0.055]"
               style={{
                 backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+                  "linear-gradient(rgba(255,255,255,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.7) 1px, transparent 1px)",
                 backgroundSize: "70px 70px",
               }}
             />
 
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
+          <div className="relative mx-auto max-w-7xl px-5 pb-24 sm:px-8 lg:px-8 lg:pb-32">
 
             {/* HERO TEXT */}
 
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 30,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.8,
-              }}
+              initial="hidden"
+              animate="visible"
+              variants={fadeUp}
+              className="mx-auto max-w-5xl text-center"
             >
 
-              <SectionTitle
-                eyebrow={heroEyebrow}
-                title={
-                  heroTitle.includes(
-                    "brand impact."
-                  ) ? (
-                    <>
-                      Turn attention into
-                      <br />
+              <div className="mb-7 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 backdrop-blur-md">
 
-                      <span className="bg-gradient-to-r from-white to-[#1479e8] bg-clip-text text-transparent">
-                        brand impact.
-                      </span>
-                    </>
-                  ) : (
-                    heroTitle
-                  )
-                }
-                description={heroDescription}
-              />
+                <span className="h-2 w-2 rounded-full bg-[#63b1ff] shadow-lg shadow-[#1479e8]" />
+
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-white/90">
+                  {heroEyebrow}
+                </span>
+
+              </div>
+
+              <h1 className="text-5xl font-black leading-[0.98] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl lg:text-[88px]">
+
+                {heroTitle.includes(
+                  "brand impact."
+                ) ? (
+                  <>
+                    Turn attention into
+                    <br />
+
+                    <span className="bg-gradient-to-r from-white via-white to-[#63b1ff] bg-clip-text text-transparent">
+                      brand impact.
+                    </span>
+                  </>
+                ) : (
+                  heroTitle
+                )}
+
+              </h1>
+
+              <p className="mx-auto mt-8 max-w-3xl text-lg font-medium leading-8 text-white/75 sm:text-xl sm:leading-9">
+                {heroDescription}
+              </p>
 
             </motion.div>
 
@@ -762,48 +773,33 @@ export default function Solutions() {
             <motion.div
               initial={{
                 opacity: 0,
-                y: 30,
+                y: 40,
               }}
               animate={{
                 opacity: 1,
                 y: 0,
               }}
               transition={{
-                duration: 0.8,
-                delay: 0.15,
+                duration: 0.9,
+                delay: 0.2,
+                ease: [0.22, 1, 0.36, 1],
               }}
-              className="mt-16"
+              className="relative mx-auto mt-16 max-w-6xl"
             >
 
-              <div className="relative overflow-hidden rounded-[2rem] border border-[#1479e8]/20 bg-[#1479e8]/[0.035]">
+              <div className="absolute -inset-5 rounded-[2.5rem] bg-[#1479e8]/20 blur-3xl" />
 
-                {/* BACKGROUND IMAGE */}
+              <div className="relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/10 p-1 shadow-2xl shadow-black/30">
 
-                <div className="absolute inset-0">
+                <div className="absolute right-[-120px] top-[-120px] h-80 w-80 rounded-full bg-[#1479e8]/15 blur-[110px]" />
 
-                  <img
-                    src={campaignImage}
-                    alt="Digital advertising campaign"
-                    className="h-full w-full object-cover opacity-35"
-                    onError={(event) => {
-                      event.currentTarget.src =
-                        campaignHeroImage;
-                    }}
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#05070a] via-[#05070a]/90 to-[#05070a]/55" />
-
-                </div>
-
-                <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-[#1479e8]/15 blur-3xl" />
-
-                <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_0.8fr] lg:items-center lg:p-10">
+                <div className="relative grid gap-8 rounded-[1.75rem] bg-[#061f46]/60 p-6 sm:p-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:p-10">
 
                   {/* LEFT */}
 
                   <div>
 
-                    <div className="flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-[#5fa8f5]">
+                    <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-[#63b1ff]">
 
                       <span className="h-2 w-2 rounded-full bg-[#1479e8] shadow-lg shadow-[#1479e8]" />
 
@@ -811,7 +807,7 @@ export default function Solutions() {
 
                     </div>
 
-                    <h2 className="mt-7 max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
+                    <h2 className="mt-7 max-w-2xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl">
 
                       {campaignTitle.includes(
                         "more than ordinary advertising."
@@ -820,7 +816,7 @@ export default function Solutions() {
                           Your message deserves
                           <br />
 
-                          <span className="text-white/40">
+                          <span className="text-white/45">
                             more than ordinary advertising.
                           </span>
                         </>
@@ -830,17 +826,20 @@ export default function Solutions() {
 
                     </h2>
 
-                    <p className="mt-6 max-w-xl leading-7 text-white/50">
+                    <p className="mt-6 max-w-xl text-base font-medium leading-8 text-white/65">
                       {campaignDescription}
                     </p>
 
                     <a
                       href={campaignButtonUrl}
-                      className="mt-8 inline-flex items-center gap-3 rounded-full bg-[#1479e8] px-7 py-3.5 font-semibold text-white shadow-xl shadow-[#1479e8]/20 transition hover:bg-[#0f6ed5]"
+                      className="group mt-9 inline-flex items-center gap-3 rounded-full bg-[#1479e8] px-7 py-4 text-sm font-black text-white shadow-xl shadow-[#1479e8]/25 transition-all duration-300 hover:-translate-y-1 hover:bg-[#0f6ed5]"
                     >
                       {campaignButtonText}
 
-                      <ArrowRight size={17} />
+                      <ArrowRight
+                        size={17}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
                     </a>
 
                   </div>
@@ -849,13 +848,15 @@ export default function Solutions() {
 
                   <div className="relative">
 
-                    <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/40 p-2 shadow-2xl">
+                    <div className="absolute -inset-3 rounded-[2rem] bg-[#1479e8]/10 blur-2xl" />
+
+                    <div className="relative overflow-hidden rounded-[1.5rem] border border-white/15 bg-[#061a3a] p-2 shadow-2xl">
 
                       <div className="relative aspect-video overflow-hidden rounded-[1.1rem]">
 
                         <img
                           src={campaignImage}
-                          alt="Digital Wisdom advertising campaign"
+                          alt="Digital advertising campaign"
                           className="h-full w-full object-cover transition duration-700 hover:scale-105"
                           onError={(event) => {
                             event.currentTarget.src =
@@ -863,13 +864,15 @@ export default function Solutions() {
                           }}
                         />
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#061a3a] via-black/20 to-transparent" />
+
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#061a3a]/45 via-transparent to-transparent" />
 
                         {/* PLAY BUTTON */}
 
                         <div className="absolute inset-0 flex items-center justify-center">
 
-                          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1479e8]/80 text-white shadow-2xl backdrop-blur-sm transition duration-300 hover:scale-110 hover:bg-[#1479e8]">
+                          <div className="flex h-17 w-17 items-center justify-center rounded-2xl border border-white/20 bg-[#1479e8]/85 text-white shadow-2xl shadow-[#1479e8]/30 backdrop-blur-md transition duration-300 hover:scale-110 hover:bg-[#1479e8]">
 
                             <Play
                               size={28}
@@ -884,11 +887,11 @@ export default function Solutions() {
 
                         <div className="absolute bottom-5 left-5 right-5">
 
-                          <div className="text-sm font-medium text-white">
+                          <div className="text-sm font-black text-white">
                             {campaignContent}
                           </div>
 
-                          <div className="mt-2 text-xs uppercase tracking-[0.2em] text-white/50">
+                          <div className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-white/50">
                             Digital Wisdom Network
                           </div>
 
@@ -914,30 +917,69 @@ export default function Solutions() {
             SOLUTIONS
         ===================================================== */}
 
-        <section className="border-y border-white/10 bg-[#090c11] py-28">
+        <section className="relative overflow-hidden bg-[#082b5f] py-24 sm:py-28 lg:py-32">
 
-          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="pointer-events-none absolute inset-0">
 
-            <SectionTitle
-              eyebrow={solutionsEyebrow}
-              title={
-                solutionsTitle.includes(
+            <div className="absolute left-[-150px] top-1/4 h-[500px] w-[500px] rounded-full bg-[#1479e8]/15 blur-[120px]" />
+
+            <div className="absolute right-[-150px] bottom-0 h-[500px] w-[500px] rounded-full bg-[#1479e8]/15 blur-[130px]" />
+
+            <div
+              className="absolute inset-0 opacity-[0.025]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(255,255,255,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.7) 1px, transparent 1px)",
+                backgroundSize: "75px 75px",
+              }}
+            />
+
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              variants={fadeUp}
+            >
+
+              <div className="mb-5 flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-[#63b1ff]">
+
+                <span className="h-2 w-2 rounded-full bg-[#1479e8] shadow-lg shadow-[#1479e8]" />
+
+                {solutionsEyebrow}
+
+              </div>
+
+              <h2 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+
+                {solutionsTitle.includes(
                   "advertising objective."
                 ) ? (
                   <>
                     Solutions for every
                     <br />
 
-                    <span className="text-white/40">
+                    <span className="text-white/45">
                       advertising objective.
                     </span>
                   </>
                 ) : (
                   solutionsTitle
-                )
-              }
-              description={solutionsDescription}
-            />
+                )}
+
+              </h2>
+
+              <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-white/65">
+                {solutionsDescription}
+              </p>
+
+            </motion.div>
 
             {/* SOLUTION CARDS */}
 
@@ -962,7 +1004,7 @@ export default function Solutions() {
                       }
                       initial={{
                         opacity: 0,
-                        y: 25,
+                        y: 35,
                       }}
                       whileInView={{
                         opacity: 1,
@@ -973,10 +1015,13 @@ export default function Solutions() {
                         amount: 0.15,
                       }}
                       transition={{
-                        duration: 0.5,
-                        delay: index * 0.05,
+                        duration: 0.55,
+                        delay: index * 0.07,
                       }}
-                      className="group relative min-h-[390px] overflow-hidden rounded-3xl border border-white/10 bg-black transition duration-300 hover:border-[#1479e8]/40"
+                      whileHover={{
+                        y: -8,
+                      }}
+                      className="group relative min-h-[410px] overflow-hidden rounded-[2rem] border border-white/15 bg-[#061f46] shadow-2xl shadow-black/20 transition duration-300 hover:border-[#63b1ff]/50"
                     >
 
                       {/* IMAGE */}
@@ -985,7 +1030,7 @@ export default function Solutions() {
                         src={solutionImage}
                         alt={solution.title}
                         loading="lazy"
-                        className="absolute inset-0 h-full w-full object-cover opacity-75 transition duration-700 group-hover:scale-110 group-hover:opacity-90"
+                        className="absolute inset-0 h-full w-full object-cover opacity-55 transition duration-700 group-hover:scale-110 group-hover:opacity-70"
                         onError={(event) => {
                           event.currentTarget.src =
                             fallbackImage;
@@ -994,26 +1039,29 @@ export default function Solutions() {
 
                       {/* OVERLAY */}
 
-                     <div className="absolute inset-0 bg-gradient-to-t from-[#05070a] via-[#05070a]/55 to-[#05070a]/10" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#061a3a] via-[#061a3a]/75 to-[#061a3a]/10" />
+
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#061a3a]/40 via-transparent to-transparent" />
+
                       {/* BLUE GLOW */}
 
-                      <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#1479e8]/20 opacity-0 blur-3xl transition duration-500 group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute right-[-60px] top-[-60px] h-56 w-56 rounded-full bg-[#1479e8]/25 opacity-0 blur-[80px] transition duration-500 group-hover:opacity-100" />
 
                       {/* CONTENT */}
 
-                      <div className="relative flex min-h-[390px] flex-col justify-between p-7 sm:p-8">
+                      <div className="relative flex min-h-[410px] flex-col justify-between p-7 sm:p-8">
 
                         {/* TOP */}
 
                         <div className="flex items-start justify-between">
 
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#1479e8]/30 bg-[#1479e8]/20 text-[#8bc4ff] backdrop-blur-md transition duration-300 group-hover:bg-[#1479e8] group-hover:text-white">
+                          <div className="flex h-13 w-13 items-center justify-center rounded-2xl border border-[#63b1ff]/30 bg-[#1479e8]/25 text-[#a8d5ff] shadow-lg shadow-black/20 backdrop-blur-md transition duration-300 group-hover:bg-[#1479e8] group-hover:text-white">
 
                             <Icon size={21} />
 
                           </div>
 
-                          <span className="text-sm font-medium tracking-wider text-[#8bc4ff]/80">
+                          <span className="text-sm font-black tracking-wider text-white/40">
                             {String(
                               solution.display_order ||
                                 index + 1
@@ -1026,21 +1074,23 @@ export default function Solutions() {
 
                         <div>
 
-                          <h3 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                          <h3 className="text-2xl font-black tracking-tight text-white sm:text-3xl">
                             {solution.title}
                           </h3>
 
-                          <p className="mt-4 max-w-xl leading-7 text-white/60">
+                          <p className="mt-4 max-w-xl text-sm font-medium leading-7 text-white/65">
                             {solution.description}
                           </p>
 
-                          <div className="mt-7 flex items-center gap-2 text-sm text-white/50 transition group-hover:text-[#8bc4ff]">
+                          <div className="mt-7 flex items-center gap-2 text-sm font-bold text-white/50 transition group-hover:text-[#8bc4ff]">
 
                             <CheckCircle2 size={16} />
 
                             Digital Wisdom Advertising
 
                           </div>
+
+                          <div className="mt-6 h-px w-10 bg-[#63b1ff]/60 transition-all duration-300 group-hover:w-full" />
 
                         </div>
 
@@ -1061,30 +1111,63 @@ export default function Solutions() {
             BENEFITS
         ===================================================== */}
 
-        <section className="py-28">
+        <section className="relative overflow-hidden bg-[#061a3a] py-24 sm:py-28 lg:py-32">
 
-          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="pointer-events-none absolute inset-0">
 
-            <SectionTitle
-              eyebrow={benefitsEyebrow}
-              title={
-                benefitsTitle.includes(
+            <div
+              className="absolute inset-0 opacity-[0.035]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(255,255,255,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.7) 1px, transparent 1px)",
+                backgroundSize: "75px 75px",
+              }}
+            />
+
+            <div className="absolute left-1/2 top-0 h-[450px] w-[750px] -translate-x-1/2 rounded-full bg-[#1479e8]/10 blur-[130px]" />
+
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              variants={fadeUp}
+            >
+
+              <div className="mb-5 text-xs font-black uppercase tracking-[0.3em] text-[#63b1ff]">
+                {benefitsEyebrow}
+              </div>
+
+              <h2 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+
+                {benefitsTitle.includes(
                   "for your brand."
                 ) ? (
                   <>
                     Visibility that works
                     <br />
 
-                    <span className="text-white/40">
+                    <span className="text-white/45">
                       for your brand.
                     </span>
                   </>
                 ) : (
                   benefitsTitle
-                )
-              }
-              description={benefitsDescription}
-            />
+                )}
+
+              </h2>
+
+              <p className="mt-6 max-w-3xl text-lg font-medium leading-8 text-white/65">
+                {benefitsDescription}
+              </p>
+
+            </motion.div>
 
             <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
@@ -1104,7 +1187,7 @@ export default function Solutions() {
                       }
                       initial={{
                         opacity: 0,
-                        y: 25,
+                        y: 30,
                       }}
                       whileInView={{
                         opacity: 1,
@@ -1115,25 +1198,44 @@ export default function Solutions() {
                         amount: 0.15,
                       }}
                       transition={{
-                        duration: 0.5,
-                        delay: index * 0.06,
+                        duration: 0.55,
+                        delay: index * 0.07,
                       }}
-                      className="rounded-3xl border border-white/10 bg-white/[0.025] p-7 transition hover:border-[#1479e8]/30 hover:bg-[#1479e8]/[0.035]"
+                      whileHover={{
+                        y: -7,
+                      }}
+                      className="group relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-white/[0.06] p-7 shadow-xl shadow-black/20 transition duration-300 hover:border-[#63b1ff]/40 hover:bg-[#1479e8]/15"
                     >
 
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1479e8]/10 text-[#5fa8f5]">
+                      <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-[#1479e8]/10 blur-3xl transition group-hover:bg-[#1479e8]/25" />
 
-                        <Icon size={21} />
+                      <div className="relative">
+
+                        <div className="flex items-center justify-between">
+
+                          <div className="flex h-13 w-13 items-center justify-center rounded-2xl bg-[#1479e8] text-white shadow-lg shadow-[#1479e8]/30">
+
+                            <Icon size={22} />
+
+                          </div>
+
+                          <span className="text-4xl font-black text-white/10">
+                            0{index + 1}
+                          </span>
+
+                        </div>
+
+                        <h3 className="mt-9 text-xl font-black text-white">
+                          {benefit.title}
+                        </h3>
+
+                        <p className="mt-4 text-sm font-medium leading-7 text-white/60">
+                          {benefit.description}
+                        </p>
+
+                        <div className="mt-8 h-px w-10 bg-[#63b1ff]/60 transition-all duration-300 group-hover:w-full" />
 
                       </div>
-
-                      <h3 className="mt-10 text-xl font-semibold">
-                        {benefit.title}
-                      </h3>
-
-                      <p className="mt-4 leading-7 text-white/40">
-                        {benefit.description}
-                      </p>
 
                     </motion.div>
                   );
@@ -1150,31 +1252,55 @@ export default function Solutions() {
             CAMPAIGN PROCESS
         ===================================================== */}
 
-        <section className="border-y border-white/10 bg-[#090c11] py-28">
+        <section className="relative overflow-hidden bg-[#082b5f] py-24 sm:py-28 lg:py-32">
 
-          <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          <div className="pointer-events-none absolute inset-0">
 
-            <SectionTitle
-              eyebrow={processEyebrow}
-              title={
-                processTitle.includes(
+            <div className="absolute left-[-150px] bottom-0 h-[450px] w-[450px] rounded-full bg-[#1479e8]/15 blur-[120px]" />
+
+            <div className="absolute right-[-150px] top-0 h-[450px] w-[450px] rounded-full bg-[#1479e8]/15 blur-[120px]" />
+
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-8">
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{
+                once: true,
+                amount: 0.2,
+              }}
+              variants={fadeUp}
+              className="text-center"
+            >
+
+              <div className="mb-5 text-xs font-black uppercase tracking-[0.3em] text-[#63b1ff]">
+                {processEyebrow}
+              </div>
+
+              <h2 className="text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+
+                {processTitle.includes(
                   "digital visibility."
                 ) ? (
                   <>
                     From idea to
                     <br />
 
-                    <span className="text-white/40">
+                    <span className="text-white/45">
                       digital visibility.
                     </span>
                   </>
                 ) : (
                   processTitle
-                )
-              }
-            />
+                )}
 
-            <div className="mt-16 grid border-l border-white/10 lg:grid-cols-4">
+              </h2>
+
+            </motion.div>
+
+            <div className="mt-16 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
 
               {displayedProcessSteps.map(
                 (step, index) => {
@@ -1202,7 +1328,7 @@ export default function Solutions() {
                       }
                       initial={{
                         opacity: 0,
-                        y: 25,
+                        y: 30,
                       }}
                       whileInView={{
                         opacity: 1,
@@ -1213,34 +1339,45 @@ export default function Solutions() {
                         amount: 0.15,
                       }}
                       transition={{
-                        duration: 0.5,
-                        delay: index * 0.06,
+                        duration: 0.55,
+                        delay: index * 0.08,
                       }}
-                      className="border-b border-r border-t border-white/10 p-7 last:border-b-0 lg:border-b-0"
+                      whileHover={{
+                        y: -7,
+                      }}
+                      className="group relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#061f46]/70 p-7 shadow-xl shadow-black/20 transition duration-300 hover:border-[#63b1ff]/40 hover:bg-[#1479e8]/15"
                     >
 
-                      <div className="flex items-center justify-between">
+                      <div className="absolute right-0 top-0 h-36 w-36 rounded-full bg-[#1479e8]/10 blur-3xl transition duration-500 group-hover:bg-[#1479e8]/25" />
 
-                        <span className="text-sm text-[#1479e8]">
-                          {String(
-                            stepNumber
-                          ).padStart(2, "0")}
-                        </span>
+                      <div className="relative">
 
-                        <Icon
-                          size={19}
-                          className="text-[#1479e8]/60"
-                        />
+                        <div className="flex items-center justify-between">
+
+                          <span className="text-4xl font-black text-[#63b1ff]">
+                            {String(
+                              stepNumber
+                            ).padStart(2, "0")}
+                          </span>
+
+                          <Icon
+                            size={20}
+                            className="text-[#63b1ff]/60 transition duration-300 group-hover:text-[#63b1ff]"
+                          />
+
+                        </div>
+
+                        <div className="mt-12 h-px w-10 bg-[#63b1ff]/50 transition-all duration-300 group-hover:w-16" />
+
+                        <h3 className="mt-7 text-xl font-black text-white">
+                          {step.title}
+                        </h3>
+
+                        <p className="mt-4 text-sm font-medium leading-7 text-white/60">
+                          {step.description}
+                        </p>
 
                       </div>
-
-                      <h3 className="mt-14 text-xl font-semibold">
-                        {step.title}
-                      </h3>
-
-                      <p className="mt-4 leading-7 text-white/40">
-                        {step.description}
-                      </p>
 
                     </motion.div>
                   );
@@ -1257,11 +1394,9 @@ export default function Solutions() {
             CTA
         ===================================================== */}
 
-        <section className="px-5 py-10 lg:px-8">
+        <section className="relative overflow-hidden bg-[#061a3a] px-5 py-10 sm:px-8 lg:px-8">
 
-          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[#1479e8]/20 bg-[#1479e8]/[0.045]">
-
-            {/* CTA IMAGE */}
+          <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] border border-[#63b1ff]/30 bg-[#1479e8] shadow-2xl shadow-[#1479e8]/20">
 
             <img
               src={ctaImage}
@@ -1274,17 +1409,43 @@ export default function Solutions() {
               }}
             />
 
-            <div className="absolute inset-0 bg-[#05070a]/85" />
+            <div className="absolute inset-0 bg-[#1479e8]/80" />
 
-            <div className="pointer-events-none absolute left-1/2 top-[-100px] h-72 w-72 -translate-x-1/2 rounded-full bg-[#1479e8]/15 blur-3xl" />
+            <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
-            <div className="relative px-7 py-20 text-center sm:px-12 sm:py-24">
+            <div className="pointer-events-none absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-[#061a3a]/25 blur-3xl" />
 
-              <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[#5fa8f5]">
-                {ctaEyebrow}
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)",
+                backgroundSize: "60px 60px",
+              }}
+            />
+
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{
+                once: true,
+                amount: 0.25,
+              }}
+              variants={fadeUp}
+              className="relative px-7 py-20 text-center sm:px-12 sm:py-24 lg:px-20"
+            >
+
+              <div className="inline-flex items-center gap-3 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 backdrop-blur-sm">
+
+                <span className="h-2 w-2 rounded-full bg-white" />
+
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-white">
+                  {ctaEyebrow}
+                </span>
+
               </div>
 
-              <h2 className="mx-auto mt-5 max-w-4xl text-4xl font-semibold tracking-tight sm:text-6xl">
+              <h2 className="mx-auto mt-7 max-w-5xl text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-7xl">
 
                 {ctaTitle.includes(
                   "brand in front of people."
@@ -1293,7 +1454,7 @@ export default function Solutions() {
                     Let's put your
                     <br />
 
-                    <span className="text-white/40">
+                    <span className="text-white/70">
                       brand in front of people.
                     </span>
                   </>
@@ -1303,20 +1464,25 @@ export default function Solutions() {
 
               </h2>
 
-              <p className="mx-auto mt-6 max-w-xl leading-7 text-white/50">
+              <p className="mx-auto mt-7 max-w-2xl text-base font-medium leading-8 text-white/80 sm:text-lg">
                 {ctaDescription}
               </p>
 
               <a
                 href={ctaButtonUrl}
-                className="mt-9 inline-flex items-center gap-3 rounded-full bg-[#1479e8] px-8 py-4 font-semibold text-white shadow-xl shadow-[#1479e8]/20 transition duration-300 hover:scale-[1.02] hover:bg-[#0f6ed5]"
+                className="group mt-10 inline-flex items-center gap-3 rounded-full bg-white px-8 py-4 text-base font-black text-[#0757b7] shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:bg-white/95"
               >
+
                 {ctaButtonText}
 
-                <ArrowRight size={18} />
+                <ArrowRight
+                  size={19}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+
               </a>
 
-            </div>
+            </motion.div>
 
           </div>
 
@@ -1325,7 +1491,7 @@ export default function Solutions() {
       </main>
 
       <Footer />
+
     </div>
   );
 }
-

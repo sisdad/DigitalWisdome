@@ -1,21 +1,10 @@
-
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { Send } from "lucide-react";
 
-import logo from "../assets/digital-wisdom-logo.png";
-
-
-import {
-  API_BASE_URL,
-  SERVER_BASE_URL,
-} from "../config/api";
-
+import { API_BASE_URL } from "../config/api";
 
 function parseContent(content) {
-  if (!content) {
-    return {};
-  }
+  if (!content) return {};
 
   if (typeof content === "object") {
     return content;
@@ -33,9 +22,9 @@ export default function Footer() {
   const [cmsPage, setCmsPage] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ============================================================
-  // LOAD FOOTER FROM PUBLIC CMS
-  // ============================================================
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -73,10 +62,6 @@ export default function Footer() {
     };
   }, []);
 
-  // ============================================================
-  // ORGANIZE CMS SECTIONS
-  // ============================================================
-
   const sections = useMemo(() => {
     const list = cmsPage?.sections || [];
 
@@ -86,274 +71,188 @@ export default function Footer() {
     }, {});
   }, [cmsPage]);
 
-  // ============================================================
-  // BRAND SECTION
-  // ============================================================
+  const footer = sections.footer || {};
 
-  const brand = sections.brand || {};
-
-  const brandContent = useMemo(
-    () => parseContent(brand.content),
-    [brand.content]
+  const footerContent = useMemo(
+    () => parseContent(footer.content),
+    [footer.content]
   );
 
-  const brandTitle =
-    brand.title || "Digital Wisdom";
+  async function handleCommentSubmit(event) {
+    event.preventDefault();
 
-  const brandDescription =
-    brand.description || "";
+    const trimmedComment = comment.trim();
 
-  const logoUrl =
-    brandContent.logo_url ||
-    brand.image_url ||
-    logo;
+    if (!trimmedComment) {
+      setMessage("Please enter a comment.");
+      return;
+    }
 
-  const logoAlt =
-    brandContent.logo_alt ||
-    brand.title ||
-    "Digital Wisdom";
+    setSubmitting(true);
+    setMessage("");
 
-  const homeUrl =
-    brandContent.home_url ||
-    brand.button_url ||
-    "/";
+    try {
+      const response = await fetch(`${API_BASE_URL}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          comment: trimmedComment,
+        }),
+      });
 
-  // ============================================================
-  // CONTACT SECTION
-  //
-  // IMPORTANT:
-  // Phone, email and location come ONLY from CMS.
-  // No hard-coded contact information.
-  // ============================================================
+      const result = await response.json();
 
-  const contact = sections.contact || {};
+      if (!response.ok || !result?.success) {
+        throw new Error(
+          result?.message || "Unable to submit your comment."
+        );
+      }
 
-  const contactContent = useMemo(
-    () => parseContent(contact.content),
-    [contact.content]
-  );
+      setComment("");
+      setMessage("Thank you for your comment.");
+    } catch (error) {
+      console.error("COMMENT SUBMIT ERROR:", error);
 
-  const contactTitle =
-    contact.title || "";
-
-  const phone =
-    contactContent.phone || "";
-
-  const email =
-    contactContent.email || "";
-
-  const location =
-    contactContent.location || "";
-
-  // ============================================================
-  // NAVIGATION SECTION
-  // ============================================================
-
-  const navigation = sections.navigation || {};
-
-  const navigationContent = useMemo(
-    () => parseContent(navigation.content),
-    [navigation.content]
-  );
-
-  const navigationEyebrow =
-    navigation.eyebrow || "Navigation";
-
-  const navigationTitle =
-    navigation.title || "";
-
-  const links = Array.isArray(navigationContent.links)
-    ? navigationContent.links
-    : [];
-
-  // ============================================================
-  // CTA SECTION
-  // ============================================================
-
-  const cta = sections.cta || {};
-
-  const ctaContent = useMemo(
-    () => parseContent(cta.content),
-    [cta.content]
-  );
-
-  const ctaText =
-    ctaContent.text ||
-    cta.button_text ||
-    "";
-
-  const ctaUrl =
-    ctaContent.url ||
-    cta.button_url ||
-    "/contact";
-
-  // ============================================================
-  // COPYRIGHT SECTION
-  // ============================================================
-
-  const copyright = sections.copyright || {};
-
-  const copyrightContent = useMemo(
-    () => parseContent(copyright.content),
-    [copyright.content]
-  );
-
-  const copyrightText =
-    copyrightContent.text ||
-    copyright.description ||
-    "";
-
-  // ============================================================
-  // LOADING STATE
-  // ============================================================
+      setMessage(
+        error.message || "Unable to submit your comment. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return (
-      <footer className="border-t border-white/10 bg-[#05070a]">
-        <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
-          <div className="h-6 w-48 animate-pulse rounded bg-white/10" />
+      <footer className="bg-black text-white">
+        <div className="mx-auto max-w-5xl px-6 py-16">
+          <div className="h-32 animate-pulse rounded-3xl bg-white/[0.04]" />
         </div>
       </footer>
     );
   }
 
-  // ============================================================
-  // RENDER
-  // ============================================================
-
   return (
-    <footer className="border-t border-white/10 bg-[#05070a]">
-      <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8">
+    <footer className="relative overflow-hidden bg-black text-white">
 
-        <div className="grid gap-12 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
+      {/* Very subtle luxury lighting */}
+      <div className="pointer-events-none absolute -left-40 -top-40 h-[400px] w-[400px] rounded-full bg-[#1479e8]/[0.07] blur-[150px]" />
 
-          {/* ====================================================
-              BRAND
-          ==================================================== */}
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-[#1479e8]/[0.05] blur-[150px]" />
 
-          <div>
-            <Link
-              to={homeUrl}
-              className="inline-flex items-center"
-            >
-              <img
-                src={logoUrl}
-                alt={logoAlt}
-                className="h-16 w-auto object-contain"
-              />
-            </Link>
+      <div className="relative mx-auto max-w-5xl px-6 lg:px-8">
 
-            <p className="mt-6 max-w-md text-sm leading-7 text-white/40">
-              {brandDescription}
-            </p>
+        {/* COMMENT SECTION */}
+<div className="py-8 sm:py-10 lg:py-12">
+  <form
+    onSubmit={handleCommentSubmit}
+    className="mx-auto max-w-3xl"
+  >
+    <div
+      className="
+        overflow-hidden
+        rounded-[22px]
+        border
+        border-white/10
+        bg-white/[0.035]
+        shadow-xl
+        shadow-black
+        transition-all
+        duration-300
+        focus-within:border-[#1479e8]/50
+        focus-within:bg-white/[0.045]
+      "
+    >
+      {/* Comment */}
+      <textarea
+        value={comment}
+        onChange={(event) => {
+          setComment(event.target.value);
+          setMessage("");
+        }}
+        placeholder="Share your thoughts..."
+        rows={3}
+        maxLength={1000}
+        className="
+          block
+          w-full
+          resize-none
+          border-0
+          bg-transparent
+          px-5
+          pt-4
+          text-sm
+          font-medium
+          leading-6
+          text-white
+          outline-none
+          placeholder:text-white/25
+          sm:px-6
+          sm:pt-5
+        "
+      />
 
-            {ctaText && (
-              <Link
-                to={ctaUrl}
-                className="mt-7 inline-flex items-center gap-2 rounded-full bg-[#1479e8] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1479e8]/20 transition hover:bg-[#0f6ed5]"
-              >
-                {ctaText}
-                <ArrowUpRight size={16} />
-              </Link>
-            )}
-          </div>
+      {/* Bottom controls */}
+      <div className="flex items-center justify-between gap-4 px-4 pb-4 pt-2 sm:px-5 sm:pb-5">
 
-          {/* ====================================================
-              NAVIGATION
-          ==================================================== */}
+        <span className="text-[11px] font-medium text-white/20">
+          {comment.length}/1000
+        </span>
 
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.25em] text-[#5fa8f5]">
-              {navigationEyebrow}
-            </div>
+        <button
+          type="submit"
+          disabled={submitting}
+          className="
+            group
+            inline-flex
+            items-center
+            gap-2.5
+            rounded-full
+            bg-[#1479e8]
+            px-5
+            py-2.5
+            text-xs
+            font-bold
+            text-white
+            transition-all
+            duration-300
+            hover:bg-[#2186f0]
+            hover:shadow-lg
+            hover:shadow-[#1479e8]/20
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
+        >
+          <span>
+            {submitting ? "Sending..." : "Send"}
+          </span>
 
-            {navigationTitle && (
-              <div className="mt-2 text-sm text-white/30">
-                {navigationTitle}
-              </div>
-            )}
+          <Send
+            size={14}
+            strokeWidth={2}
+            className="transition-transform duration-300 group-hover:translate-x-1"
+          />
+        </button>
+      </div>
+    </div>
 
-            <div className="mt-6 flex flex-col gap-4">
-              {links.map((link) => (
-                <Link
-                  key={`${link.name}-${link.path}`}
-                  to={link.path}
-                  className="text-sm text-white/45 transition hover:text-white"
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </div>
-          </div>
+    {message && (
+      <p className="mt-3 text-center text-xs font-medium text-white/45">
+        {message}
+      </p>
+    )}
+  </form>
+</div>
 
-          {/* ====================================================
-              CONTACT
-          ==================================================== */}
-
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.25em] text-[#5fa8f5]">
-              {contact.eyebrow || "Contact"}
-            </div>
-
-            {contactTitle && (
-              <div className="mt-2 text-sm text-white/30">
-                {contactTitle}
-              </div>
-            )}
-
-            <div className="mt-6 space-y-4 text-sm text-white/40">
-
-              {/* PHONE — CMS ONLY */}
-              {phone && (
-                <a
-                  href={`tel:${phone.replace(/\s+/g, "")}`}
-                  className="block transition hover:text-white"
-                >
-                  {phone}
-                </a>
-              )}
-
-              {/* EMAIL — CMS ONLY */}
-              {email && (
-                <a
-                  href={`mailto:${email}`}
-                  className="block transition hover:text-white"
-                >
-                  {email}
-                </a>
-              )}
-
-              {/* LOCATION — CMS ONLY */}
-              {location && (
-                <p>
-                  {location}
-                </p>
-              )}
-
-            </div>
-          </div>
-        </div>
-
-        {/* ======================================================
-            BOTTOM
-        ====================================================== */}
-
-        <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-7 sm:flex-row sm:items-center sm:justify-between">
-
-          <p className="text-xs text-white/25">
-            {copyrightText}
+        {/* COPYRIGHT */}
+        <div className="border-t border-white/10 py-7">
+          <p className="text-center text-xs font-medium tracking-wide text-white/35 sm:text-sm">
+            © {new Date().getFullYear()} Digital Wisdom Advertising and Promotion. All rights reserved.
           </p>
-
-          <div className="flex items-center gap-2 text-xs text-white/25">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1479e8]" />
-
-            {cta.description ||
-              brandTitle}
-          </div>
         </div>
 
       </div>
     </footer>
   );
 }
-

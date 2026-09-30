@@ -1,4 +1,3 @@
-
 const TOKEN_KEY = "digital_wisdom_admin_token";
 
 import {
@@ -62,13 +61,8 @@ async function adminRequest(endpoint, options = {}) {
     data = null;
   }
 
-  // ==========================================================
-  // AUTHENTICATION FAILURE
-  // ==========================================================
-
   if (response.status === 401) {
     clearAdminToken();
-
     notifyAdminSessionExpired();
 
     const error = new Error(
@@ -82,10 +76,6 @@ async function adminRequest(endpoint, options = {}) {
     throw error;
   }
 
-  // ==========================================================
-  // AUTHORIZATION FAILURE
-  // ==========================================================
-
   if (response.status === 403) {
     const error = new Error(
       data?.message ||
@@ -97,10 +87,6 @@ async function adminRequest(endpoint, options = {}) {
 
     throw error;
   }
-
-  // ==========================================================
-  // OTHER API ERRORS
-  // ==========================================================
 
   if (!response.ok) {
     const error = new Error(
@@ -206,6 +192,22 @@ export async function updateInquiryStatus(
         status,
       }),
     }
+  );
+}
+
+// ============================================================
+// CUSTOMER COMMENTS
+// ============================================================
+
+export async function getAdminComments() {
+  return adminRequest(
+    "/comments/admin"
+  );
+}
+
+export async function getAdminComment(id) {
+  return adminRequest(
+    `/comments/admin/${id}`
   );
 }
 
@@ -604,7 +606,6 @@ export async function uploadCmsImage(file) {
 
   return data;
 }
-
 
 // ============================================================
 // CMS — ASSIGN IMAGE TO SECTION

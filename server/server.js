@@ -14,6 +14,7 @@ import adminInquiryRoutes from "./routes/adminInquiryRoutes.js";
 import publicCmsRoutes from "./routes/publicCmsRoutes.js";
 import cmsImageRoutes from "./routes/cmsImageRoutes.js";
 import adminCmsRoutes from "./routes/adminCmsRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
 // ============================================================
 // APP
 // ============================================================
@@ -190,6 +191,14 @@ app.use(
   "/api/admin/inquiries",
   adminInquiryRoutes
 );
+
+
+// ============================================================
+// Comment
+// ============================================================
+
+app.use("/api/comments", commentRoutes);
+
 
 // ============================================================
 // ADMIN CMS IMAGE UPLOAD ROUTES
